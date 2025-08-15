@@ -1,11 +1,15 @@
+
 import 'package:flutter/material.dart';
 
-class CustomTextField extends StatelessWidget {
+class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
   final String label;
   final IconData icon;
   final bool obscure;
   final String? Function(String?)? validator;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final void Function(String)? onSubmitted;
 
   const CustomTextField({
     super.key,
@@ -14,24 +18,43 @@ class CustomTextField extends StatelessWidget {
     required this.icon,
     this.obscure = false,
     this.validator,
+    this.keyboardType,
+    this.textInputAction,
+    this.onSubmitted,
   });
+
+  @override
+  State<CustomTextField> createState() => _CustomTextFieldState();
+}
+
+class _CustomTextFieldState extends State<CustomTextField> {
+  bool _obscure = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _obscure = widget.obscure;
+  }
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      controller: controller,
-      obscureText: obscure,
+      controller: widget.controller,
+      obscureText: _obscure,
+      validator: widget.validator,
+      keyboardType: widget.keyboardType,
+      textInputAction: widget.textInputAction,
+      onFieldSubmitted: widget.onSubmitted,
       decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
+        labelText: widget.label,
+        prefixIcon: Icon(widget.icon),
+        suffixIcon: widget.obscure
+            ? IconButton(
+                icon: Icon(_obscure ? Icons.visibility_off : Icons.visibility),
+                onPressed: () => setState(() => _obscure = !_obscure),
+              )
+            : null,
       ),
-      validator: validator,
     );
   }
 }

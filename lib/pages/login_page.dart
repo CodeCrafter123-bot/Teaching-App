@@ -1,8 +1,14 @@
+
 import 'package:flutter/material.dart';
-import 'package:teachingapp/pages/edubot_logo.dart';
+import 'package:teachingapp/services/auth_services.dart';
+import '../core/app_theme.dart';
+import '../core/routes.dart';
+import '../widgets/edubot_logo.dart';
 import '../widgets/custom_textfield.dart';
-import 'register_page.dart';
-import 'discover_page.dart';
+import '../widgets/primary_button.dart';
+import '../core/routes.dart';
+
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -17,111 +23,86 @@ class _LoginPageState extends State<LoginPage> {
   final passwordController = TextEditingController();
   bool isLoading = false;
 
-  void _login() {
-    if (_formKey.currentState!.validate()) {
-      setState(() => isLoading = true);
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() => isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login Successful!')),
-        );
-      });
+  Future<void> _login() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => isLoading = true);
+    try {
+      await authService.login(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
+    } on AuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    } catch (_) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Something went wrong. Please try again.')));
+    } finally {
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+      backgroundColor: AppColors.bg,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Form(
             key: _formKey,
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 const EduBotLogo(),
-                const SizedBox(height: 30),
-                const Text(
-                  "Welcome Back 👋",
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 30),
-
+                const SizedBox(height: 26),
+                const Text("Welcome Back 👋", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 26),
                 CustomTextField(
                   controller: emailController,
                   label: "Email",
                   icon: Icons.email_outlined,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Please enter your email";
-                    }
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                      return "Enter a valid email";
-                    }
+                  keyboardType: TextInputType.emailAddress,
+                  textInputAction: TextInputAction.next,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return "Please enter your email";
+                    final re = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+                    if (!re.hasMatch(v.trim())) return "Enter a valid email";
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
-
                 CustomTextField(
                   controller: passwordController,
                   label: "Password",
                   icon: Icons.lock_outline,
                   obscure: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Please enter your password";
-                    }
-                    if (value.length < 6) {
-                      return "Password must be at least 6 characters";
-                    }
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _login(),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return "Please enter your password";
+                    if (v.length < 6) return "Password must be at least 6 characters";
                     return null;
                   },
                 ),
-                const SizedBox(height: 20),
-
-                ElevatedButton(
-                  onPressed: isLoading ? null : _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3E64FF),
-                    minimumSize: const Size(double.infinity, 50),
-                  ),
-                  child: isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text("Login"),
-                ),
-                const SizedBox(height: 20),
-
+                const SizedBox(height: 18),
+                PrimaryButton(label: "Login", onPressed: _login, loading: isLoading),
+                const SizedBox(height: 14),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text("Don't have an account? "),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const RegisterPage(),
-                          ),
-                        );
-                      },
-                      child: const Text("Sign Up"),
-                    ),
+                    TextButton(onPressed: () => Navigator.pushNamed(context, AppRoutes.register), child: const Text("Sign Up")),
                   ],
                 ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const DiscoverPage(),
-                      ),
-                    );
-                  },
-                  child: const Text("Continue as Guest"),
-                ),
+                TextButton(onPressed: () => Navigator.pushNamed(context, AppRoutes.discover), child: const Text("Continue as Guest")),
               ],
             ),
           ),

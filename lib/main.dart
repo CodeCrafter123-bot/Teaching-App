@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'pages/login_page.dart';
+import 'core/app_theme.dart';
+import 'core/routes.dart';
+import 'pages/splash_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,8 +15,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'EduBot',
-      theme: ThemeData(primarySwatch: Colors.indigo),
-      home: const LoginPage(),
+      theme: buildTheme(),
+      initialRoute: AppRoutes.splash,
+      routes: AppRoutes.map,
     );
   }
 }
