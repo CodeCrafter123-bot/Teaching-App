@@ -1,11 +1,9 @@
-
 import 'package:flutter/material.dart';
 import 'package:teachingapp/services/auth_services.dart';
 import '../core/routes.dart';
 import '../widgets/edubot_logo.dart';
 import '../widgets/custom_textfield.dart';
 import '../widgets/primary_button.dart';
-
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -32,19 +30,24 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => isLoading = true);
+
+    final name = nameController.text.trim();
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    print("Registration attempt -> Name: $name, Email: $email, Password: $password"); // terminal logging
+
     try {
-      await authService.register(
-        name: nameController.text,
-        email: emailController.text,
-        password: passwordController.text,
-      );
+      await authService.register(name: name, email: email, password: password);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registration successful!')));
       Navigator.pushReplacementNamed(context, AppRoutes.home);
     } on AuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
     } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Something went wrong. Please try again.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Something went wrong. Please try again.')),
+      );
     } finally {
       if (mounted) setState(() => isLoading = false);
     }

@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:teachingapp/services/auth_services.dart';
 import '../core/app_theme.dart';
@@ -6,9 +5,6 @@ import '../core/routes.dart';
 import '../widgets/edubot_logo.dart';
 import '../widgets/custom_textfield.dart';
 import '../widgets/primary_button.dart';
-import '../core/routes.dart';
-
-
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -33,17 +29,23 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => isLoading = true);
+
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    print("Login attempt -> Email: $email, Password: $password"); // terminal logging
+
     try {
-      await authService.login(
-        email: emailController.text,
-        password: passwordController.text,
-      );
+      await authService.login(email: email, password: password);
       if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Welcome, $email!')));
       Navigator.pushReplacementNamed(context, AppRoutes.home);
     } on AuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
     } catch (_) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Something went wrong. Please try again.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Something went wrong. Please try again.')),
+      );
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -99,10 +101,16 @@ class _LoginPageState extends State<LoginPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text("Don't have an account? "),
-                    TextButton(onPressed: () => Navigator.pushNamed(context, AppRoutes.register), child: const Text("Sign Up")),
+                    TextButton(
+                      onPressed: () => Navigator.pushNamed(context, AppRoutes.register),
+                      child: const Text("Sign Up"),
+                    ),
                   ],
                 ),
-                TextButton(onPressed: () => Navigator.pushNamed(context, AppRoutes.discover), child: const Text("Continue as Guest")),
+                TextButton(
+                  onPressed: () => Navigator.pushNamed(context, AppRoutes.discover),
+                  child: const Text("Continue as Guest"),
+                ),
               ],
             ),
           ),
