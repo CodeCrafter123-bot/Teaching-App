@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
-import 'core/app_theme.dart';
+import 'services/database_helper.dart';
 import 'core/routes.dart';
-import 'pages/splash_page.dart';
+import 'pages/login_page.dart';
+import 'pages/register_page.dart';
+import 'pages/home_page.dart'; // replace with your home page
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize SQLite database before running the app
+  await DatabaseHelper().database;
+
   runApp(const MyApp());
 }
 
@@ -15,8 +22,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'EduBot',
-      theme: buildTheme(),
-      initialRoute: AppRoutes.splash,
+      initialRoute: AppRoutes.login,
       routes: AppRoutes.map,
     );
   }

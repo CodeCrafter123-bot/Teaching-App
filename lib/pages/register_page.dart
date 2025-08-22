@@ -38,9 +38,12 @@ class _RegisterPageState extends State<RegisterPage> {
     print("Registration attempt -> Name: $name, Email: $email, Password: $password"); // terminal logging
 
     try {
-      await authService.register(name: name, email: email, password: password);
+      final success = await authService.register(name: name, email: email, password: password);
+      print("Registration success -> Name: $name, Email: $email"); // terminal logging
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registration successful!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Registration successful!')),
+      );
       Navigator.pushReplacementNamed(context, AppRoutes.home);
     } on AuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));

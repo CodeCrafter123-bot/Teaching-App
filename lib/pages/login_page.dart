@@ -36,9 +36,12 @@ class _LoginPageState extends State<LoginPage> {
     print("Login attempt -> Email: $email, Password: $password"); // terminal logging
 
     try {
-      await authService.login(email: email, password: password);
+      final user = await authService.login(email: email, password: password);
+      print("Login success -> $user"); // terminal logging
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Welcome, $email!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Welcome ${user!['name']}!')),
+      );
       Navigator.pushReplacementNamed(context, AppRoutes.home);
     } on AuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
