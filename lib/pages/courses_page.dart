@@ -24,14 +24,14 @@ class CoursesPage extends StatelessWidget {
           final c = courses[i];
           return Card(
             child: ListTile(
+              leading: const Icon(Icons.menu_book_outlined),
               title: Text(c.$1),
               subtitle: Text(c.$2),
-              leading: const Icon(Icons.menu_book_outlined),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.pushNamed(
                 context,
                 AppRoutes.examPlayer,
-                arguments: c.$1, // 👈 send course name
+                arguments: c.$1,
               ),
             ),
           );

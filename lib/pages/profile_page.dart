@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:teachingapp/services/auth_services.dart';
-import 'package:teachingapp/services/database_helper.dart';
+import '../services/auth_services.dart';
+import '../services/database_helper.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -11,40 +11,35 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final dbHelper = DatabaseHelper();
-  Map<String, dynamic>? user;
-
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController nameController;
   late TextEditingController passwordController;
+  Map<String, dynamic>? user;
 
   @override
   void initState() {
     super.initState();
     user = authService.currentUser;
-
     nameController = TextEditingController(text: user?['name'] ?? '');
     passwordController = TextEditingController();
   }
 
-  void updateName() async {
-    if (nameController.text.isNotEmpty && user != null) {
-      await dbHelper.updateUser(user!['email'], newName: nameController.text);
-      setState(() {
-        user!['name'] = nameController.text;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Name updated successfully!")),
-      );
-    }
-  }
+  Future<void> saveProfile() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (user == null) return;
 
-  void updatePassword() async {
-    if (passwordController.text.isNotEmpty && user != null) {
-      await dbHelper.updateUser(user!['email'], newPassword: passwordController.text);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Password updated successfully!")),
-      );
-      passwordController.clear();
-    }
+    await dbHelper.updateUser(
+      user!['email'],
+      newName: nameController.text.trim(),
+      newPassword: passwordController.text.trim().isEmpty
+          ? null
+          : passwordController.text.trim(),
+    );
+
+    user = authService.currentUser;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Profile updated successfully!")),
+    );
   }
 
   @override
@@ -56,49 +51,37 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            CircleAvatar(
-              radius: 50,
-              child: const Icon(Icons.person_outline, size: 50),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              user!['email'],
-              style: const TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-            Text(
-              "Joined: ${user!['joinedDate'] ?? 'N/A'}",
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-            const SizedBox(height: 24),
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: "Name",
-                border: OutlineInputBorder(),
+      appBar: AppBar(title: const Text("Profile")),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              CircleAvatar(
+                radius: 40,
+                child: Text(user!['name'][0].toUpperCase()),
               ),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(onPressed: updateName, child: const Text("Update Name")),
-            const SizedBox(height: 20),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: "New Password",
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: "Name"),
+                validator: (v) =>
+                    (v == null || v.isEmpty) ? "Enter your name" : null,
               ),
-            ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              onPressed: updatePassword,
-              child: const Text("Update Password"),
-            ),
-          ],
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: passwordController,
+                decoration: const InputDecoration(labelText: "New Password"),
+                obscureText: true,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: saveProfile,
+                child: const Text("Save"),
+              ),
+            ],
+          ),
         ),
       ),
     );

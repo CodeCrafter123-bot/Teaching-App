@@ -29,7 +29,7 @@ class AuthService {
     }
   }
 
-  // Login (returns user map instead of bool)
+  // Login
   Future<Map<String, dynamic>?> login({
     required String email,
     required String password,
@@ -37,9 +37,9 @@ class AuthService {
     try {
       final user = await _db.loginUser(email, password);
       if (user != null) {
-        _currentUser = user; // store logged-in user
+        _currentUser = user; // ✅ store globally
         print("Login success -> $user");
-        return user;          // ✅ return the user map
+        return user;          // return user map
       } else {
         throw AuthException("Invalid email or password!");
       }
@@ -49,7 +49,6 @@ class AuthService {
     }
   }
 
-  // Logout
   void logout() {
     _currentUser = null;
     print("User logged out");

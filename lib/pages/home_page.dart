@@ -8,8 +8,6 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final email = AuthService().getUserEmail() ?? "User";
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("EduBot Dashboard"),
@@ -17,7 +15,7 @@ class HomePage extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-              AuthService().logout();
+              authService.logout();
               Navigator.pushReplacementNamed(context, AppRoutes.login);
             },
           ),
@@ -28,40 +26,39 @@ class HomePage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Welcome, $email 👋",
-                style:
-                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            Builder(
+              builder: (context) {
+                final user = authService.currentUser;
+                final username = user?['name'] ?? "User";
+                return Text(
+                  "Welcome, $username 👋",
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                );
+              },
+            ),
             const SizedBox(height: 20),
-
-            // Courses button
             ElevatedButton.icon(
               icon: const Icon(Icons.menu_book),
               label: const Text("Courses"),
-              onPressed: () =>
-                  Navigator.pushNamed(context, AppRoutes.courses),
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.courses),
             ),
-
-            // Exam Results button
+            const SizedBox(height: 12),
             ElevatedButton.icon(
               icon: const Icon(Icons.fact_check),
               label: const Text("Exam Results"),
-              onPressed: () =>
-                  Navigator.pushNamed(context, AppRoutes.examResult),
+              onPressed: () => Navigator.pushNamed(context, AppRoutes.examResult),
             ),
-
-            // Progress button
-           ElevatedButton.icon(
-  icon: const Icon(Icons.person),
-  label: const Text("Profile"),
-  onPressed: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const ProfilePage()),
-    );
-  },
-),
-
-
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.person),
+              label: const Text("Profile"),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfilePage()),
+                );
+              },
+            ),
           ],
         ),
       ),

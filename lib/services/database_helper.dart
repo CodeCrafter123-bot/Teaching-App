@@ -111,37 +111,29 @@ class DatabaseHelper {
   }
 
   // Get progress
- Future<List<Map<String, dynamic>>> getUserProgress(String email) async {
-  final db = await database;
-  print("📊 Fetching progress for $email");
+  Future<List<Map<String, dynamic>>> getUserProgress(String email) async {
+    final db = await database;
+    final result = await db.rawQuery('''
+      SELECT c.id, c.name, c.modules, 
+             IFNULL(up.completedModules, 0) as completedModules
+      FROM courses c
+      LEFT JOIN user_progress up
+        ON c.id = up.courseId AND up.userEmail = ?
+    ''', [email]);
 
-  final result = await db.rawQuery('''
-    SELECT c.id, c.name, c.modules, 
-           IFNULL(up.completedModules, 0) as completedModules
-    FROM courses c
-    LEFT JOIN user_progress up
-      ON c.id = up.courseId AND up.userEmail = ?
-  ''', [email]);
+    return result;
+  }
 
-  print("✅ Progress data: $result");
-  return result;
+  Future<int> updateUser(String email, {String? newName, String? newPassword}) async {
+    final db = await database;
+    Map<String, dynamic> values = {};
+    if (newName != null) values['name'] = newName;
+    if (newPassword != null) values['password'] = newPassword;
+    return await db.update(
+      'users',
+      values,
+      where: 'email = ?',
+      whereArgs: [email],
+    );
+  }
 }
-// in database_helper.dart
-
-Future<int> updateUser(String email, {String? newName, String? newPassword}) async {
-  final db = await database;
-  Map<String, dynamic> values = {};
-  if (newName != null) values['name'] = newName;
-  if (newPassword != null) values['password'] = newPassword;
-  return await db.update(
-    'users',  // your users table
-    values,
-    where: 'email = ?',
-    whereArgs: [email],
-  );
-}
-
-}
-// in database_helper.dart
-
-
