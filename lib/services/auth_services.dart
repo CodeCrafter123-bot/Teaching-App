@@ -8,7 +8,10 @@ class AuthException implements Exception {
 class AuthService {
   final DatabaseHelper _db = DatabaseHelper();
 
-  get currentUser => null;
+  // Store the currently logged-in user
+  static Map<String, dynamic>? _currentUser;
+
+  Map<String, dynamic>? get currentUser => _currentUser;
 
   // Register
   Future<bool> register({
@@ -26,7 +29,7 @@ class AuthService {
     }
   }
 
-  // Login
+  // Login (returns user map instead of bool)
   Future<Map<String, dynamic>?> login({
     required String email,
     required String password,
@@ -34,8 +37,9 @@ class AuthService {
     try {
       final user = await _db.loginUser(email, password);
       if (user != null) {
+        _currentUser = user; // store logged-in user
         print("Login success -> $user");
-        return user;
+        return user;          // ✅ return the user map
       } else {
         throw AuthException("Invalid email or password!");
       }
@@ -45,11 +49,13 @@ class AuthService {
     }
   }
 
+  // Logout
   void logout() {
+    _currentUser = null;
     print("User logged out");
   }
 
-  getUserEmail() {}
+  String? getUserEmail() => _currentUser?['email'];
 }
 
 // Global instance

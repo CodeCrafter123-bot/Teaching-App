@@ -1,39 +1,102 @@
-
 import 'package:flutter/material.dart';
 import 'package:teachingapp/services/auth_services.dart';
+import 'package:teachingapp/services/database_helper.dart';
 
-
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  final dbHelper = DatabaseHelper();
+  Map<String, dynamic>? user;
+
+  late TextEditingController nameController;
+  late TextEditingController passwordController;
+
+  @override
+  void initState() {
+    super.initState();
+    user = authService.currentUser;
+
+    nameController = TextEditingController(text: user?['name'] ?? '');
+    passwordController = TextEditingController();
+  }
+
+  void updateName() async {
+    if (nameController.text.isNotEmpty && user != null) {
+      await dbHelper.updateUser(user!['email'], newName: nameController.text);
+      setState(() {
+        user!['name'] = nameController.text;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Name updated successfully!")),
+      );
+    }
+  }
+
+  void updatePassword() async {
+    if (passwordController.text.isNotEmpty && user != null) {
+      await dbHelper.updateUser(user!['email'], newPassword: passwordController.text);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Password updated successfully!")),
+      );
+      passwordController.clear();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final user = authService.currentUser;
+    if (user == null) {
+      return const Scaffold(
+        body: Center(child: Text("No user logged in")),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.person_outline)),
-              title: Text(user?.name ?? 'Guest'),
-              subtitle: Text(user?.email ?? 'guest@example.com'),
+            CircleAvatar(
+              radius: 50,
+              child: const Icon(Icons.person_outline, size: 50),
             ),
-            const SizedBox(height: 12),
-            const Text('Settings', style: TextStyle(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            SwitchListTile(
-              value: true,
-              onChanged: (_) {},
-              title: const Text('Dark Mode (visual only)'),
+            const SizedBox(height: 16),
+            Text(
+              user!['email'],
+              style: const TextStyle(fontSize: 16, color: Colors.grey),
             ),
-            ListTile(
-              leading: const Icon(Icons.privacy_tip_outlined),
-              title: const Text('Privacy Policy'),
-              subtitle: const Text('How we handle your data (demo).'),
-              onTap: () {},
+            Text(
+              "Joined: ${user!['joinedDate'] ?? 'N/A'}",
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: "Name",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(onPressed: updateName, child: const Text("Update Name")),
+            const SizedBox(height: 20),
+            TextField(
+              controller: passwordController,
+              obscureText: true,
+              decoration: const InputDecoration(
+                labelText: "New Password",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: updatePassword,
+              child: const Text("Update Password"),
             ),
           ],
         ),
