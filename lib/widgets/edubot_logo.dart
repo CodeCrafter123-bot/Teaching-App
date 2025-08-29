@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/app_theme.dart';
 
 class EduBotLogo extends StatelessWidget {
-  const EduBotLogo({super.key});
+  const EduBotLogo({super.key, required int size});
 
   @override
   Widget build(BuildContext context) {
