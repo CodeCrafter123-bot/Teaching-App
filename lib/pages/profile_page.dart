@@ -12,8 +12,11 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final dbHelper = DatabaseHelper();
   final _formKey = GlobalKey<FormState>();
+
   late TextEditingController nameController;
-  late TextEditingController passwordController;
+  late TextEditingController oldPasswordController;
+  late TextEditingController newPasswordController;
+
   Map<String, dynamic>? user;
 
   @override
@@ -21,25 +24,44 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
     user = authService.currentUser;
     nameController = TextEditingController(text: user?['name'] ?? '');
-    passwordController = TextEditingController();
+    oldPasswordController = TextEditingController();
+    newPasswordController = TextEditingController();
   }
 
   Future<void> saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
     if (user == null) return;
 
+    final oldPassword = oldPasswordController.text.trim();
+    final newPassword = newPasswordController.text.trim();
+
+    // Check if user entered a new password
+    if (newPassword.isNotEmpty) {
+      // Verify old password before updating
+      if (oldPassword != user!['password']) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Old password is incorrect!")),
+        );
+        return;
+      }
+    }
+
+    // Update database
     await dbHelper.updateUser(
       user!['email'],
       newName: nameController.text.trim(),
-      newPassword: passwordController.text.trim().isEmpty
-          ? null
-          : passwordController.text.trim(),
+      newPassword: newPassword.isEmpty ? null : newPassword,
     );
 
+    // Refresh current user
     user = authService.currentUser;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Profile updated successfully!")),
     );
+
+    // Clear password fields after update
+    oldPasswordController.clear();
+    newPasswordController.clear();
   }
 
   @override
@@ -63,6 +85,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Text(user!['name'][0].toUpperCase()),
               ),
               const SizedBox(height: 16),
+
+              // Name field
               TextFormField(
                 controller: nameController,
                 decoration: const InputDecoration(labelText: "Name"),
@@ -70,12 +94,23 @@ class _ProfilePageState extends State<ProfilePage> {
                     (v == null || v.isEmpty) ? "Enter your name" : null,
               ),
               const SizedBox(height: 16),
+
+              // Old password field
               TextFormField(
-                controller: passwordController,
+                controller: oldPasswordController,
+                decoration: const InputDecoration(labelText: "Old Password"),
+                obscureText: true,
+              ),
+              const SizedBox(height: 16),
+
+              // New password field
+              TextFormField(
+                controller: newPasswordController,
                 decoration: const InputDecoration(labelText: "New Password"),
                 obscureText: true,
               ),
               const SizedBox(height: 20),
+
               ElevatedButton(
                 onPressed: saveProfile,
                 child: const Text("Save"),

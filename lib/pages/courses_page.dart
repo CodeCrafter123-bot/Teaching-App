@@ -6,13 +6,15 @@ class CoursesPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final courses = [
-      ('Algorithms', '12 modules'),
-      ('Data Structures', '10 modules'),
-      ('Operating Systems', '8 modules'),
-      ('Computer Networks', '7 modules'),
-      ('Databases', '6 modules'),
-    ];
+   final courses = [
+  ('Mobile Development', '5 modules'),
+  ('Web Development', '5 modules'),
+  ('Quality Assurance', '5 modules'),
+  ('Project Management', '5 modules'),
+  ('Artificial Intelligence', '5 modules'),
+  ('Cyber Security', '5 modules'),
+];
+
 
     return Scaffold(
       appBar: AppBar(title: const Text('Courses')),
