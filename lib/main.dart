@@ -3,12 +3,12 @@ import 'services/database_helper.dart';
 import 'core/routes.dart';
 import 'pages/login_page.dart';
 import 'pages/register_page.dart';
-import 'pages/home_page.dart'; // replace with your home page
+import 'pages/home_page.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize SQLite database before running the app
+  // Initializing  database before running the app
   await DatabaseHelper().database;
 
   runApp(const MyApp());

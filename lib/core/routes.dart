@@ -27,7 +27,7 @@ class AppRoutes {
     discover: (_) => const DiscoverPage(),
     home: (_) => const HomePage(),
     courses: (_) => const CoursesPage(),
-    examPlayer: (_) => const ExamPlayerPage(),
+    examPlayer: (_) => const ExamPlayerPage(course: '',),
     examResult: (_) => const ExamResultPage(),
     profile: (_) => const ProfilePage(),
   };

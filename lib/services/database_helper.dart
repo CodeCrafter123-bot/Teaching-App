@@ -17,8 +17,9 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'users.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // bumped to 2 so exam_results table is created
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -53,12 +54,40 @@ class DatabaseHelper {
       )
     ''');
 
+    // Exam Results table ✅
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS exam_results (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        course TEXT,
+        score INTEGER,
+        total INTEGER,
+        percentage REAL,
+        date TEXT
+      )
+    ''');
+
     // Pre-insert courses
     await db.insert("courses", {"name": "Algorithms", "modules": 12});
     await db.insert("courses", {"name": "Data Structures", "modules": 10});
     await db.insert("courses", {"name": "Operating Systems", "modules": 8});
     await db.insert("courses", {"name": "Computer Networks", "modules": 7});
     await db.insert("courses", {"name": "Databases", "modules": 6});
+  }
+
+  // 🔹 Make sure table is created if DB was old
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS exam_results (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          course TEXT,
+          score INTEGER,
+          total INTEGER,
+          percentage REAL,
+          date TEXT
+        )
+      ''');
+    }
   }
 
   // User Registration
@@ -124,6 +153,7 @@ class DatabaseHelper {
     return result;
   }
 
+  // Update user info
   Future<int> updateUser(String email, {String? newName, String? newPassword}) async {
     final db = await database;
     Map<String, dynamic> values = {};
@@ -135,5 +165,28 @@ class DatabaseHelper {
       where: 'email = ?',
       whereArgs: [email],
     );
+  }
+
+  // ✅ Save exam result
+  Future<int> insertExamResult(String course, int score, int total) async {
+    final db = await database;
+    final percentage = (score / total) * 100;
+
+    return await db.insert(
+      "exam_results",
+      {
+        "course": course,
+        "score": score,
+        "total": total,
+        "percentage": percentage,
+        "date": DateTime.now().toIso8601String(),
+      },
+    );
+  }
+
+  // ✅ Fetch all exam results
+  Future<List<Map<String, dynamic>>> getExamResults() async {
+    final db = await database;
+    return await db.query("exam_results", orderBy: "date DESC");
   }
 }
